@@ -26,18 +26,18 @@ class ZhipuAILLM(LLM):
     """Zhipuai hosted open source or customized models.
 
     To use, you should have the ``zhipuai`` python package installed, and
-    the environment variable ``qianfan_ak`` and ``qianfan_sk`` set with
+    the environment variable ``zhipuai_api_key`` set with
     your API key and Secret Key.
 
-    ak, sk are required parameters which you could get from
-    https://cloud.baidu.com/product/wenxinworkshop
+    zhipuai_api_key are required parameters which you could get from
+    https://open.bigmodel.cn/usercenter/apikeys
 
     Example:
         .. code-block:: python
 
-            from langchain.llms import QianfanLLMEndpoint
-            qianfan_model = QianfanLLMEndpoint(model="ERNIE-Bot",
-                endpoint="your_endpoint", ak="your_ak", sk="your_sk")
+            from langchain.llms import ZhipuAILLM
+            zhipuai_model = ZhipuAILLM(model="chatglm_std", temperature=temperature)
+
     """
 
     model_kwargs: Dict[str, Any] = Field(default_factory=dict)

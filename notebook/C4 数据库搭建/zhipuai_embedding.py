@@ -73,6 +73,17 @@ class ZhipuAIEmbeddings(BaseModel, Embeddings):
         return embeddings
 
     def embed_query(self, text: str) -> List[float]:
+        """
+        Embedding a text.
+
+        Args:
+
+            Text (str): A text to be embedded.
+
+        Return:
+
+            List [float]: An embedding list of input text, which is a list of floating-point values.
+        """
         resp = self.embed_documents([text])
         return resp[0]
 
