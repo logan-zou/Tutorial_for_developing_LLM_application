@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File    :   zhipuai_llm.py
+@Time    :   2023/10/16 22:06:26
+@Author  :   0-yy-0
+@Version :   1.0
+@Contact :   310484121@qq.com
+@License :   (C)Copyright 2017-2018, Liugroup-NLPR-CASIA
+@Desc    :   基于智谱 AI 大模型自定义 LLM 类
+'''
+
 from __future__ import annotations
 
 import logging
@@ -18,11 +30,12 @@ from langchain.llms.base import LLM
 from langchain.pydantic_v1 import Field, root_validator
 from langchain.schema.output import GenerationChunk
 from langchain.utils import get_from_dict_or_env
+from self_llm import Self_LLM
 
 logger = logging.getLogger(__name__)
 
 
-class ZhipuAILLM(LLM):
+class ZhipuAILLM(Self_LLM):
     """Zhipuai hosted open source or customized models.
 
     To use, you should have the ``zhipuai`` python package installed, and
@@ -65,6 +78,7 @@ class ZhipuAILLM(LLM):
 
     @root_validator()
     def validate_enviroment(cls, values: Dict) -> Dict:
+
         values["zhipuai_api_key"] = get_from_dict_or_env(
             values,
             "zhipuai_api_key",
@@ -145,6 +159,8 @@ class ZhipuAILLM(LLM):
                 completion += chunk.text
             return completion
         params = self._convert_prompt_msg_params(prompt, **kwargs)
+
+        print(**kwargs)
         response_payload = self.client.invoke(**params)
 
 
@@ -164,6 +180,8 @@ class ZhipuAILLM(LLM):
             return completion
 
         params = self._convert_prompt_msg_params(prompt, **kwargs)
+        print(**kwargs)
+
         response = await self.client.async_invoke(**params)
 
         return response_payload
