@@ -25,10 +25,11 @@ from datetime import datetime
 from time import mktime
 from urllib.parse import urlencode
 from wsgiref.handlers import format_date_time
+import zhipuai
 
 import websocket  # 使用websocket_client
 
-def get_completion(prompt :str, model :str, temperature=0.1,api_key=None, secret_key=None, access_token=None, appid=None, api_secret=None, max_tokens=4096):
+def get_completion(prompt :str, model :str, temperature=0.1,api_key=None, secret_key=None, access_token=None, appid=None, api_secret=None, max_tokens=2048):
     # 调用大模型获取回复，支持上述三种模型+gpt
     # arguments:
     # prompt: 输入提示
@@ -40,12 +41,16 @@ def get_completion(prompt :str, model :str, temperature=0.1,api_key=None, secret
     # max_tokens : 返回最长序列
     # return: 模型返回，字符串
     # 调用 GPT
-    if model in ["gpt-turbo-3.5", "gpt-turbo-3.5-16k-0613", "gpt-turbo-3.5-0613", "gpt-4", "gpt-4-32k"]:
+    if model in ["gpt-3.5-turbo", "gpt-3.5-turbo-16k-0613", "gpt-3.5-turbo-0613", "gpt-4", "gpt-4-32k"]:
         return get_completion_gpt(prompt, model, temperature, api_key, max_tokens)
     elif model in ["ERNIE-Bot", "ERNIE-Bot-4", "ERNIE-Bot-turbo"]:
         return get_completion_wenxin(prompt, model, temperature, api_key, secret_key)
     elif model in ["Spark-1.5", "Spark-2.0"]:
         return get_completion_spark(prompt, model, temperature, api_key, appid, api_secret, max_tokens)
+    elif model in ["chatglm_pro", "chatglm_std", "chatglm_lite"]:
+        return get_completion_glm(prompt, model, temperature, api_key, max_tokens)
+    else:
+        return "不正确的模型"
     
 def get_completion_gpt(prompt : str, model : str, temperature : float, api_key:str, max_tokens:int):
     # 封装 OpenAI 原生接口
@@ -106,6 +111,9 @@ def get_completion_wenxin(prompt : str, model : str, temperature : float, api_ke
     return js["result"]
 
 def get_completion_spark(prompt : str, model : str, temperature : float, api_key:str, appid : str, api_secret : str, max_tokens : int):
+    if api_key == None or appid == None and api_secret == None:
+        return "没有 API Key 或没有 APPID 或没有 API Secret，调用失败"
+    
     # 配置 1.5 和 2 的不同环境
     if model == "Spark-1.5":
         domain = "general"  
@@ -114,17 +122,31 @@ def get_completion_spark(prompt : str, model : str, temperature : float, api_key
         domain = "generalv2"    # v2.0版本
         Spark_url = "ws://spark-api.xf-yun.com/v2.1/chat"  # v2.0环境的地址
 
-    question = getText("user", prompt)
+    question = [{"role":"user", "content":prompt}]
     response = spark_main(appid,api_key,api_secret,Spark_url,domain,question,temperature, max_tokens)
     return response
 
-def getText(role, content, text = []):
-    # role 是指定角色，content 是 prompt 内容
-    jsoncon = {}
-    jsoncon["role"] = role
-    jsoncon["content"] = content
-    text.append(jsoncon)
-    return text
+def get_completion_glm(prompt : str, model : str, temperature : float, api_key:str, max_tokens : int):
+    # 获取GLM回答
+    if api_key == None:
+        return "没有 API Key，调用失败"
+    zhipuai.api_key = api_key
+
+    response = zhipuai.model_api.invoke(
+        model=model,
+        prompt=[{"role":"user", "content":prompt}],
+        temperature = temperature,
+        max_tokens=max_tokens
+        )
+    return response["data"]["choices"][0]["content"]
+
+# def getText(role, content, text = []):
+#     # role 是指定角色，content 是 prompt 内容
+#     jsoncon = {}
+#     jsoncon["role"] = role
+#     jsoncon["content"] = content
+#     text.append(jsoncon)
+#     return text
 
 # 星火 API 调用使用
 answer = ""
