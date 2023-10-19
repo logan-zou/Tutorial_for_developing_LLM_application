@@ -4,14 +4,13 @@ from langchain.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredMarkdownLoader
 from langchain.document_loaders import UnstructuredFileLoader
-
 # from langchain.embeddings.openai import OpenAIEmbeddings
 # from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 
 # from langchain.llms import OpenAI
 # from langchain.llms import HuggingFacePipeline
-from embedding.zhipuai_embedding import ZhipuAIEmbeddings
-
+from  zhipuai_embedding import ZhipuAIEmbeddings
+import gradio as gr
 # 使用前配置自己的 api 到环境变量中如
 import os
 import openai
@@ -21,14 +20,16 @@ from dotenv import load_dotenv, find_dotenv
 
 # _ = load_dotenv(find_dotenv()) # read local .env fileopenai.api_key  = os.environ['OPENAI_API_KEY']
 # openai.api_key  = os.environ['OPENAI_API_KEY']
-
-
+db_path = "../../knowledge_base"
+persist_directory = "../../vector_data_base"
 def file_loader(file, loaders):
+    if type(file) == gr.File:
+        file = file.name
     if not os.path.isfile(file):
         [file_loader(file, loaders) for file in  os.listdir(file)]
         return
-    file_type = file.name.split('.')[-1]
-    file = file.name
+
+    file_type = file.split('.')[-1]
     if file_type == 'pdf':
         loader.append(PyMuPDFLoader(file))
     elif file_type == 'md':
@@ -63,7 +64,7 @@ def create_db(files, embeddings):
 
     # 切分文档
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=150)
-    split_docs = text_splitter.split_documents(docs)
+    split_docs = text_splitter.split_documents(docs[:10])
 
     # 定义持久化路径
     persist_directory = '../knowledge_base/chroma'
@@ -100,3 +101,6 @@ def load_knowledge_db(path, embeddings):
         persist_directory=path.name  
     )
     return vectordb
+
+if __name__ == "__main__":
+    create_db(db_path, ZhipuAIEmbeddings)
