@@ -1,1 +1,1 @@
-from .zhipuai_embedding import ZhipuAIEmbeddings
+# from .zhipuai_embedding import ZhipuAIEmbeddings

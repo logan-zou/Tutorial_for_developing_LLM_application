@@ -1,25 +1,19 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 # 首先实现基本配置
 from langchain.vectorstores import Chroma
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredMarkdownLoader
 from langchain.document_loaders import UnstructuredFileLoader
-# from langchain.embeddings.openai import OpenAIEmbeddings
-# from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 
-# from langchain.llms import OpenAI
-# from langchain.llms import HuggingFacePipeline
-from  zhipuai_embedding import ZhipuAIEmbeddings
+from embedding.call_embedding import get_embedding
 import gradio as gr
-# 使用前配置自己的 api 到环境变量中如
-import os
-import openai
-import sys
 
 from dotenv import load_dotenv, find_dotenv
 
-# _ = load_dotenv(find_dotenv()) # read local .env fileopenai.api_key  = os.environ['OPENAI_API_KEY']
-# openai.api_key  = os.environ['OPENAI_API_KEY']
 db_path = "../../knowledge_base"
 persist_directory = "../../vector_data_base"
 def file_loader(file, loaders):
@@ -51,6 +45,8 @@ def create_db(files, embeddings):
     返回:
     vectordb: 创建的数据库。
     """
+    if type(embeddings) == str:
+        embeddings =  get_embedding(embeddings)
     if len(files) == 0:
         return "can't load empty file"
     if len(files) == 1:
@@ -75,6 +71,7 @@ def create_db(files, embeddings):
         embedding=embeddings,
         persist_directory=persist_directory  # 允许我们将persist_directory目录保存到磁盘上
     )
+    vectordb.persist()
 
 def presit_knowledge_db(vectordb):
     """
@@ -103,4 +100,4 @@ def load_knowledge_db(path, embeddings):
     return vectordb
 
 if __name__ == "__main__":
-    create_db(db_path, ZhipuAIEmbeddings)
+    create_db(db_path, "zhipuai")

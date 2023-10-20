@@ -5,9 +5,7 @@ import IPython.display   # 用于在 IPython 环境中显示数据，例如图�
 import requests          # 用于进行 HTTP 请求，例如 GET 和 POST 请求
 import sys
 
-sys.path.append('..')
-
-sys.path.append('../..')
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import gradio as gr
 
@@ -107,7 +105,7 @@ with block as demo:
         # 设置文本框的提交事件（即按下Enter键时）。功能与上面的 llm_btn 按钮点击事件相同。
         msg.submit(get_completion, inputs=[msg, chatbot,  llm, embeddings, history_len, top_k, temperature], outputs=[msg, chatbot]) 
         # 点击后清空后端存储的聊天记录
-        # clear.click(clear_history)
+        clear.click(clear_history)
     gr.Markdown("""提醒：<br>
     1. 使用时请先上传自己的知识文件，并且文件中不含某些特殊字符，否则将返回error. <br>
     """)
