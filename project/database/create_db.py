@@ -13,25 +13,22 @@ from embedding.call_embedding import get_embedding
 import gradio as gr
 
 from dotenv import load_dotenv, find_dotenv
+import tempfile
 
-db_path = "../../knowledge_base"
-persist_directory = "../../vector_data_base"
+
 def file_loader(file, loaders):
-    if type(file) == gr.File:
+    if isinstance(file, tempfile._TemporaryFileWrapper):
         file = file.name
     if not os.path.isfile(file):
-        [file_loader(file, loaders) for file in  os.listdir(file)]
+        [file_loader(os.path.join(file, f), loaders) for f in  os.listdir(file)]
         return
-
     file_type = file.split('.')[-1]
     if file_type == 'pdf':
-        loader.append(PyMuPDFLoader(file))
+        loaders.append(PyMuPDFLoader(file))
     elif file_type == 'md':
-        loader.append(UnstructuredMarkdownLoader(file))
+        loaders.append(UnstructuredMarkdownLoader(file))
     elif file_type == 'txt':
-        loader.append(UnstructuredFileLoader(file))
-    else:
-        loader = None
+        loaders.append(UnstructuredFileLoader(file))
     return
 
 def create_db(files, embeddings):
@@ -45,11 +42,11 @@ def create_db(files, embeddings):
     返回:
     vectordb: 创建的数据库。
     """
-    if type(embeddings) == str:
-        embeddings =  get_embedding(embeddings)
+    if type(files) == str:
+        files = [files]
     if len(files) == 0:
         return "can't load empty file"
-    if len(files) == 1:
+    if type(files) != list:
         files = [files]
     loaders = []
     [file_loader(file, loaders)  for file in files]
@@ -57,13 +54,15 @@ def create_db(files, embeddings):
     for loader in loaders:
         if loader is not None:
             docs.extend(loader.load())
-
+    [print(doc.metadata) for doc in docs]
     # 切分文档
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=150)
     split_docs = text_splitter.split_documents(docs[:10])
 
     # 定义持久化路径
     persist_directory = '../knowledge_base/chroma'
+    if type(embeddings) == str:
+        embeddings =  get_embedding(embeddings)
 
     # 加载数据库
     vectordb = Chroma.from_documents(
@@ -100,4 +99,6 @@ def load_knowledge_db(path, embeddings):
     return vectordb
 
 if __name__ == "__main__":
+    db_path = "../../knowledge_base"
+    persist_directory = "../../vector_data_base"
     create_db(db_path, "zhipuai")
