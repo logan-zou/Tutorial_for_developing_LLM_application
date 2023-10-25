@@ -34,7 +34,7 @@ class QA_chain_self():
         self.QA_CHAIN_PROMPT = PromptTemplate(input_variables=["context","question"],
                                     template=self.template)
         # 自定义 QA 链
-        qa_chain = RetrievalQA.from_chain_type(llm=self.llm,
+        self.qa_chain = RetrievalQA.from_chain_type(llm=self.llm,
                                         retriever=self.vectordb.as_retriever(),
                                         return_source_documents=True,
                                         chain_type_kwargs={"prompt":self.QA_CHAIN_PROMPT})
@@ -42,7 +42,7 @@ class QA_chain_self():
     #基于大模型的问答 prompt 使用的默认提示模版
     #default_template_llm = """请回答下列问题:{question}"""
            
-    def answer(self, question:str=None):
+    def answer(self, question:str=None, temperature = 0, top_k = 5):
         """"
         核心方法，调用问答链
         arguments: 
@@ -52,5 +52,5 @@ class QA_chain_self():
         if len(question) == 0:
             return ""
         
-        result = self.qa_chain({"query": question})
+        result = self.qa_chain({"query": question, "temperature": temperature, "top_k":top_k})
         return result["result"]   

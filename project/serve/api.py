@@ -16,7 +16,7 @@ import os
 import sys
 # 导入功能模块目录
 sys.path.append("../")
-from database.chat_qa_chain import QA_chain_self, Chat_QA_chain_self
+from qa_chain.QA_chain_self import QA_chain_self
 
 app = FastAPI() # 创建 api 对象
 
@@ -57,13 +57,13 @@ class Item(BaseModel):
 async def get_response(item: Item):
 
     # 首先确定需要调用的链
-    if item.if_history:
+    if not item.if_history:
         # 调用 Chat 链
-        chain = Chat_QA_chain_self(item.db_path, item.model, item.prompt_template, 
+        chain = QA_chain_self(item.db_path, item.model, item.prompt_template, 
                                    item.input_variables, item.temperature, item.api_key,
                                    item.secret_key, item.access_token, item.appid, item.api_secret, item.embedding)
         
-        response = chain.chat_with_db(query = item.prompt, llm = item.model, top_k = item.top_k, temperature = item.temperature)
+        response = chain.answer(question = item.prompt, top_k = item.top_k, temperature = item.temperature)
     
         return response
     
