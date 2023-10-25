@@ -18,7 +18,8 @@ requests.adapters.DEFAULT_TIMEOUT = 60
 from dotenv import load_dotenv, find_dotenv
 from llm.call_llm import get_completion
 from database import create_db
-# from database.chat_qa_chain import QA_chain_self, Chat_QA_chain_self
+from qa_chain.Chat_QA_chain_self import Chat_QA_chain_self
+from qa_chain.QA_chain_self import QA_chain_self
 
 # 寻找 .env 文件并加载它的内容
 # 这允许您使用 os.environ 来读取在 .env 文件中设置的环境变量
